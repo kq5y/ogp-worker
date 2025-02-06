@@ -8,11 +8,17 @@
 		"check": "biome check --write"
 	},
 	"dependencies": {
-		"hono": "^4.6.20"
+		"hono": "^4.6.20",
+		"satori": "^0.12.1",
+		"svg2png-wasm": "^1.4.1",
+		"yoga-wasm-web": "^0.3.3"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@cloudflare/workers-types": "^4.20250109.0",
 		"wrangler": "^3.101.0"
-	}
+	},
+  "engines": {
+    "node": ">=20.0.0"
+  }
 }
