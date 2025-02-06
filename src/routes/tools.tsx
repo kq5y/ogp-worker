@@ -22,15 +22,54 @@ const genModuleInit = () => {
 };
 const moduleInit = genModuleInit();
 
+interface FontCacheData {
+  name: string;
+  data: string;
+  weight: Font["weight"];
+}
+
 async function getFonts(name: string, fonts: [string, Font["weight"]][]) {
   return await Promise.all(
     fonts.map(async ([filename, weight]) => {
+      const cacheKey = `font:${filename}-${weight}`;
+      const cache = await caches.open("font-cache");
+      const cachedResponse = await cache.match(cacheKey);
+      if (cachedResponse) {
+        const cachedFont = (await cachedResponse.json()) as FontCacheData;
+        const arrayBuffer = Uint8Array.from(atob(cachedFont.data), (c) =>
+          c.charCodeAt(0)
+        ).buffer;
+        return {
+          name: cachedFont.name,
+          data: arrayBuffer,
+          weight: cachedFont.weight,
+        } as Font;
+      }
       const data = await fetch(`https://tools.t3x.jp/fonts/${filename}.woff`);
-      return {
+      const arrayBuffer = await data.arrayBuffer();
+      const font = {
         name,
-        data: await data.arrayBuffer(),
+        data: arrayBuffer,
         weight: weight,
       } as Font;
+      const base64Data = btoa(
+        String.fromCharCode(...new Uint8Array(arrayBuffer))
+      );
+      const cacheData: FontCacheData = {
+        name,
+        data: base64Data,
+        weight,
+      };
+      await cache.put(
+        cacheKey,
+        new Response(JSON.stringify(cacheData), {
+          headers: {
+            "Cache-Control": "max-age=604800",
+            "Content-Type": "application/json",
+          },
+        })
+      );
+      return font;
     })
   );
 }
@@ -86,9 +125,11 @@ router.get("/image.png", async (c) => {
         <div
           style={{
             fontSize: "48px",
-            color: "#bbb"
+            color: "#bbb",
           }}
-        >{"/*** tools.t3x.jp ***/"}</div>
+        >
+          {"/*** tools.t3x.jp ***/"}
+        </div>
         <div
           style={{ fontSize: "90px", fontWeight: "bold" }}
         >{`${cat}.${slug}`}</div>
@@ -96,7 +137,7 @@ router.get("/image.png", async (c) => {
           style={{
             fontSize: "60px",
             fontWeight: "bold",
-            color: "#ddd"
+            color: "#ddd",
           }}
         >
           {title}
