@@ -83,6 +83,20 @@ router.get("/image.png", async (c) => {
     return c.body("Invalid Parameters", { status: 400 });
   }
 
+  const cacheKey = `ogp:tools:${cat}-${slug}}`;
+
+  const cache = await caches.open('ogp-cache');
+  const cachedResponse = await cache.match(cacheKey);
+
+  if (cachedResponse) {
+    return new Response(cachedResponse.body, {
+      headers: {
+        "Content-Type": "image/png",
+        "Cache-Control": "public, max-age=31536000, immutable",
+      },
+    });
+  }
+
   await moduleInit();
 
   const fonts: Font[] = await getFonts("inconsolata", [
@@ -154,12 +168,16 @@ router.get("/image.png", async (c) => {
   const ogp = await svg2png(svg);
   const buffer = ogp.buffer as ArrayBuffer;
 
-  return c.body(buffer, {
+  const response = new Response(buffer, {
     headers: {
       "Content-Type": "image/png",
       "Cache-Control": "public, max-age=31536000, immutable",
     },
   });
+
+  await cache.put(cacheKey, response.clone());
+
+  return response;
 });
 
 export { router };
