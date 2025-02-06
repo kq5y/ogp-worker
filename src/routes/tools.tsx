@@ -22,54 +22,36 @@ const genModuleInit = () => {
 };
 const moduleInit = genModuleInit();
 
-interface FontCacheData {
-  name: string;
-  data: string;
-  weight: Font["weight"];
-}
-
 async function getFonts(name: string, fonts: [string, Font["weight"]][]) {
   return await Promise.all(
     fonts.map(async ([filename, weight]) => {
-      const cacheKey = `font:${filename}-${weight}`;
+      const cacheKey = `https://tools.t3x.jp/fonts/${filename}.woff`;
       const cache = await caches.open("font-cache");
       const cachedResponse = await cache.match(cacheKey);
       if (cachedResponse) {
-        const cachedFont = (await cachedResponse.json()) as FontCacheData;
-        const arrayBuffer = Uint8Array.from(atob(cachedFont.data), (c) =>
-          c.charCodeAt(0)
-        ).buffer;
+        const arrayBuffer = await cachedResponse.arrayBuffer();
         return {
-          name: cachedFont.name,
+          name,
           data: arrayBuffer,
-          weight: cachedFont.weight,
+          weight,
         } as Font;
       }
       const data = await fetch(`https://tools.t3x.jp/fonts/${filename}.woff`);
       const arrayBuffer = await data.arrayBuffer();
-      const font = {
-        name,
-        data: arrayBuffer,
-        weight: weight,
-      } as Font;
-      const base64Data = btoa(
-        String.fromCharCode(...new Uint8Array(arrayBuffer))
-      );
-      const cacheData: FontCacheData = {
-        name,
-        data: base64Data,
-        weight,
-      };
       await cache.put(
         cacheKey,
-        new Response(JSON.stringify(cacheData), {
+        new Response(arrayBuffer, {
           headers: {
             "Cache-Control": "max-age=604800",
-            "Content-Type": "application/json",
+            "Content-Type": "font/woff",
           },
         })
       );
-      return font;
+      return {
+        name,
+        data: arrayBuffer,
+        weight,
+      } as Font;
     })
   );
 }
@@ -83,9 +65,8 @@ router.get("/image.png", async (c) => {
     return c.body("Invalid Parameters", { status: 400 });
   }
 
-  const cacheKey = `ogp:tools:${cat}-${slug}}`;
-
-  const cache = await caches.open('ogp-cache');
+  const cacheKey = `https://ogp.t3x.jp/tools/image.png?cat=${cat}&slug=${slug}&title=${title}`;
+  const cache = await caches.open("ogp-cache");
   const cachedResponse = await cache.match(cacheKey);
 
   if (cachedResponse) {
