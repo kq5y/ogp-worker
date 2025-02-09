@@ -1,60 +1,7 @@
 import { Hono } from "hono";
 
-import satori, { type Font, init } from "satori/wasm";
-import { initialize, svg2png } from "svg2png-wasm";
-import wasm from "svg2png-wasm/svg2png_wasm_bg.wasm";
-import initYoga from "yoga-wasm-web";
-import yogaWasm from "yoga-wasm-web/dist/yoga.wasm";
-
-const WIDTH = 1200;
-const HEIGHT = 630;
-
-const genModuleInit = () => {
-  let isInit = false;
-  return async () => {
-    if (isInit) {
-      return;
-    }
-    init(await initYoga(yogaWasm));
-    await initialize(wasm);
-    isInit = true;
-  };
-};
-const moduleInit = genModuleInit();
-
-async function getFonts(name: string, fonts: [string, Font["weight"]][]) {
-  return await Promise.all(
-    fonts.map(async ([filename, weight]) => {
-      const cacheKey = `https://tools.t3x.jp/fonts/${filename}.woff`;
-      const cache = await caches.open("font-cache");
-      const cachedResponse = await cache.match(cacheKey);
-      if (cachedResponse) {
-        const arrayBuffer = await cachedResponse.arrayBuffer();
-        return {
-          name,
-          data: arrayBuffer,
-          weight,
-        } as Font;
-      }
-      const data = await fetch(`https://tools.t3x.jp/fonts/${filename}.woff`);
-      const arrayBuffer = await data.arrayBuffer();
-      await cache.put(
-        cacheKey,
-        new Response(arrayBuffer, {
-          headers: {
-            "Cache-Control": "max-age=604800",
-            "Content-Type": "font/woff",
-          },
-        })
-      );
-      return {
-        name,
-        data: arrayBuffer,
-        weight,
-      } as Font;
-    })
-  );
-}
+import { getFonts } from "@/libs/font";
+import { generateImage } from "@/libs/ogp";
 
 const router = new Hono();
 
@@ -78,18 +25,16 @@ router.get("/image.png", async (c) => {
     });
   }
 
-  await moduleInit();
-
-  const fonts: Font[] = await getFonts("inconsolata", [
-    ["Inconsolata-Bold", 700],
-    ["Inconsolata-Regular", 400],
+  const fonts = await getFonts("inconsolata", [
+    ["https://tools.t3x.jp/fonts/Inconsolata-Bold.woff", 700],
+    ["https://tools.t3x.jp/fonts/Inconsolata-Regular.woff", 400],
   ]);
 
-  const svg = await satori(
+  const buffer = await generateImage(
     <div
       style={{
-        width: WIDTH,
-        height: HEIGHT,
+        width: "100%",
+        height: "100%",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -140,14 +85,9 @@ router.get("/image.png", async (c) => {
       </div>
     </div>,
     {
-      width: WIDTH,
-      height: HEIGHT,
       fonts: fonts,
     }
   );
-
-  const ogp = await svg2png(svg);
-  const buffer = ogp.buffer as ArrayBuffer;
 
   const response = new Response(buffer, {
     headers: {
