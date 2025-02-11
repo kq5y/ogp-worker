@@ -46,3 +46,54 @@ export const getFonts = async (
     })
   );
 };
+
+interface GoogleFontAPIResponse {
+  kind: "webfonts#webfontList";
+  items: {
+    family: string;
+    variants: string[];
+    subsets?: string[];
+    version: string;
+    lastModified: string;
+    files: {
+      [key: string]: string;
+    };
+    category: string;
+    kind: string;
+    menu: string;
+  }[];
+}
+
+const weightMap: { [key: string]: Font["weight"] } = {
+  "100": 100,
+  "200": 200,
+  "300": 300,
+  "400": 400,
+  "500": 500,
+  "600": 600,
+  "700": 700,
+  "800": 800,
+  "900": 900,
+  regular: 400,
+};
+
+export const getGoogleFonts = async (
+  name: string,
+  weights: string[],
+  key: string
+) => {
+  const fontEndpoint = new URL(
+    "https://www.googleapis.com/webfonts/v1/webfonts"
+  );
+  fontEndpoint.searchParams.set("key", key);
+  fontEndpoint.searchParams.set("family", name);
+  const data = await fetch(fontEndpoint.toString());
+  const json = (await data.json()) as GoogleFontAPIResponse;
+  return Promise.all(
+    Object.entries(json.items[0].files)
+      .filter(([weight]) => weights.includes(weight))
+      .map(async ([weight, url]) => {
+        return getFont(name, url, weightMap[weight], "font/ttf");
+      })
+  );
+};

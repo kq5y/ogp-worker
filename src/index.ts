@@ -2,7 +2,7 @@ import { Hono } from "hono";
 
 import { router as toolsRouter } from "./routes/tools";
 
-const app = new Hono();
+const app = new Hono<Env>();
 
 app.route("/tools", toolsRouter);
 

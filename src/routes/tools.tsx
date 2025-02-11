@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { getFonts } from "@/libs/font";
 import { generateImage } from "@/libs/ogp";
 
-const router = new Hono();
+const router = new Hono<Env>();
 
 router.get("/image.png", async (c) => {
   const { cat, slug, title } = c.req.query();
