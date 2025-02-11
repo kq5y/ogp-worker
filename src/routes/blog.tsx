@@ -47,13 +47,16 @@ const getPosts = async (useCache = true) => {
   const items: PostItem[] = result.rss.channel.item.map((item: RSSItem) => ({
     title: item.title,
     link: item.link,
-    date: (new Date(item.pubDate)).toISOString().split("T")[0],
+    date: new Date(item.pubDate).toISOString().split("T")[0],
     slug: item.slug,
     hidden: item.hidden,
     tags: item.tags.split(","),
   }));
 
-  await cache.put("https://t3x.jp/rss.xml", new Response(JSON.stringify(items)));
+  await cache.put(
+    "https://t3x.jp/rss.xml",
+    new Response(JSON.stringify(items))
+  );
 
   return items;
 };
@@ -81,10 +84,10 @@ router.get("/image.png", async (c) => {
   }
 
   let posts = await getPosts();
-  let post = posts.find(p => p.slug === slug && p.date === date);
+  let post = posts.find((p) => p.slug === slug && p.date === date);
   if (!post) {
     posts = await getPosts(false);
-    post = posts.find(p => p.slug === slug && p.date === date);
+    post = posts.find((p) => p.slug === slug && p.date === date);
     if (!post) {
       return c.body("Post not found", { status: 404 });
     }
@@ -129,7 +132,7 @@ router.get("/image.png", async (c) => {
           display: "flex",
           flexDirection: "column",
           padding: "40px",
-          gap: "20px"
+          gap: "20px",
         }}
       >
         <div
@@ -144,7 +147,7 @@ router.get("/image.png", async (c) => {
           style={{
             fontSize: "70px",
             fontWeight: "bold",
-            flex: "1"
+            flex: "1",
           }}
         >
           {post.title}
