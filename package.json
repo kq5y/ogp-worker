@@ -8,6 +8,7 @@
 		"check": "biome check --write"
 	},
 	"dependencies": {
+		"fast-xml-parser": "^4.5.1",
 		"hono": "^4.6.20",
 		"satori": "^0.12.1",
 		"svg2png-wasm": "^1.4.1",
