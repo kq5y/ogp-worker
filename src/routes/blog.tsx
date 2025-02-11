@@ -109,46 +109,55 @@ router.get("/image.png", async (c) => {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(0deg, #0f0c38, #030221)",
+        background: "linear-gradient(to bottom right, #13161b, #131217)",
         color: "#eee",
-        fontFamily: "inconsolata, sans-serif",
-        textAlign: "center",
+        fontFamily: '"M PLUS Rounded 1c", sans-serif',
         position: "relative",
       }}
     >
       <div
         style={{
           position: "absolute",
-          top: "50px",
-          left: "50px",
-          right: "50px",
-          bottom: "50px",
-          borderRadius: "50px",
-          background: "#5a596b45",
+          top: "60px",
+          left: "60px",
+          right: "60px",
+          bottom: "60px",
+          borderRadius: "30px",
+          background: "rgba(33,36,56,.8)",
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "80px",
+          padding: "40px",
+          gap: "20px"
         }}
       >
         <div
           style={{
-            fontSize: "48px",
-            color: "#bbb",
+            fontSize: "36px",
+            color: "#aaa",
           }}
         >
-          {"/*** tools.t3x.jp ***/"}
+          {`/${post.slug}`}
         </div>
-        <div style={{ fontSize: "90px", fontWeight: "bold" }}>{post.title}</div>
         <div
           style={{
-            fontSize: "60px",
+            fontSize: "70px",
             fontWeight: "bold",
-            color: "#ddd",
+            flex: "1"
           }}
         >
-          {post.date}
+          {post.title}
+        </div>
+        <div
+          style={{
+            fontSize: "45px",
+            fontWeight: "bold",
+            color: "#ccc",
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <div>{post.date}</div>
+          <div>t3x.jp</div>
         </div>
       </div>
     </div>,
