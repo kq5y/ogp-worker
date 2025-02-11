@@ -6,7 +6,7 @@ import { generateImage } from "@/libs/ogp";
 const router = new Hono<Env>();
 
 router.get("/image.png", async (c) => {
-  const { cat, slug, title } = c.req.query();
+  const { cat, slug, title, noCache } = c.req.query();
 
   if (!cat || !slug || !title) {
     return c.body("Invalid Parameters", { status: 400 });
@@ -14,15 +14,17 @@ router.get("/image.png", async (c) => {
 
   const cacheKey = `https://ogp.t3x.jp/tools/image.png?cat=${cat}&slug=${slug}&title=${title}`;
   const cache = await caches.open("ogp-cache");
-  const cachedResponse = await cache.match(cacheKey);
 
-  if (cachedResponse) {
-    return new Response(cachedResponse.body, {
-      headers: {
-        "Content-Type": "image/png",
-        "Cache-Control": "public, max-age=31536000, immutable",
-      },
-    });
+  if (noCache !== "1") {
+    const cachedResponse = await cache.match(cacheKey);
+    if (cachedResponse) {
+      return new Response(cachedResponse.body, {
+        headers: {
+          "Content-Type": "image/png",
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      });
+    }
   }
 
   const fonts = await getFonts("inconsolata", [

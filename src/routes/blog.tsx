@@ -59,7 +59,7 @@ const getPosts = async (useCache = true) => {
 };
 
 router.get("/image.png", async (c) => {
-  const { slug, date } = c.req.query();
+  const { slug, date, noCache } = c.req.query();
 
   if (!slug || !date) {
     return c.body("Invalid Parameters", { status: 400 });
@@ -67,15 +67,17 @@ router.get("/image.png", async (c) => {
 
   const cacheKey = `https://ogp.t3x.jp/blog/image.png?slug=${slug}&date=${date}`;
   const cache = await caches.open("ogp-cache");
-  const cachedResponse = await cache.match(cacheKey);
 
-  if (cachedResponse) {
-    return new Response(cachedResponse.body, {
-      headers: {
-        "Content-Type": "image/png",
-        "Cache-Control": "public, max-age=31536000, immutable",
-      },
-    });
+  if (noCache !== "1") {
+    const cachedResponse = await cache.match(cacheKey);
+    if (cachedResponse) {
+      return new Response(cachedResponse.body, {
+        headers: {
+          "Content-Type": "image/png",
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      });
+    }
   }
 
   let posts = await getPosts();
