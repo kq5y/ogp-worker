@@ -3,7 +3,7 @@
   "name": "ogp-worker",
   "main": "src/index.ts",
   "compatibility_date": "2025-02-06",
-  "routes": [{ "pattern": "ogp.t3x.jp", "custom_domain": true }],
+  "routes": [{ "pattern": "ogp.kq5.jp", "custom_domain": true }],
   "workers_dev": false,
   "preview_urls": false,
   "observability": {

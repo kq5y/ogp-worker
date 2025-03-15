@@ -34,13 +34,13 @@ const getPosts = async (useCache = true) => {
   const cache = await caches.open("blog-cache");
 
   if (useCache) {
-    const cachedResponse = await cache.match("https://t3x.jp/rss.xml");
+    const cachedResponse = await cache.match("https://kq5.jp/rss.xml");
     if (cachedResponse) {
       return JSON.parse(await cachedResponse.text()) as PostItem[];
     }
   }
 
-  const response = await fetch("https://t3x.jp/rss.xml");
+  const response = await fetch("https://kq5.jp/rss.xml");
   const xml = await response.text();
   const result = parser.parse(xml);
 
@@ -54,7 +54,7 @@ const getPosts = async (useCache = true) => {
   }));
 
   await cache.put(
-    "https://t3x.jp/rss.xml",
+    "https://kq5.jp/rss.xml",
     new Response(JSON.stringify(items))
   );
 
@@ -68,7 +68,7 @@ router.get("/image.png", async (c) => {
     return c.body("Invalid Parameters", { status: 400 });
   }
 
-  const cacheKey = `https://ogp.t3x.jp/blog/image.png?slug=${slug}&date=${date}`;
+  const cacheKey = `https://ogp.kq5.jp/blog/image.png?slug=${slug}&date=${date}`;
   const cache = await caches.open("ogp-cache");
 
   if (noCache !== "1") {
@@ -162,7 +162,7 @@ router.get("/image.png", async (c) => {
           }}
         >
           <div>{post.date}</div>
-          <div>t3x.jp</div>
+          <div>kq5.jp</div>
         </div>
       </div>
     </div>,

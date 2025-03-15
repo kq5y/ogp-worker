@@ -12,7 +12,7 @@ router.get("/image.png", async (c) => {
     return c.body("Invalid Parameters", { status: 400 });
   }
 
-  const cacheKey = `https://ogp.t3x.jp/tools/image.png?cat=${cat}&slug=${slug}&title=${title}`;
+  const cacheKey = `https://ogp.kq5.jp/tools/image.png?cat=${cat}&slug=${slug}&title=${title}`;
   const cache = await caches.open("ogp-cache");
 
   if (noCache !== "1") {
@@ -28,8 +28,8 @@ router.get("/image.png", async (c) => {
   }
 
   const fonts = await getFonts("inconsolata", [
-    ["https://tools.t3x.jp/fonts/Inconsolata-Bold.woff", 700],
-    ["https://tools.t3x.jp/fonts/Inconsolata-Regular.woff", 400],
+    ["https://tools.kq5.jp/fonts/Inconsolata-Bold.woff", 700],
+    ["https://tools.kq5.jp/fonts/Inconsolata-Regular.woff", 400],
   ]);
 
   const buffer = await generateImage(
@@ -70,7 +70,7 @@ router.get("/image.png", async (c) => {
             color: "#bbb",
           }}
         >
-          {"/*** tools.t3x.jp ***/"}
+          {"/*** tools.kq5.jp ***/"}
         </div>
         <div
           style={{ fontSize: "90px", fontWeight: "bold" }}
