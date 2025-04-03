@@ -8,19 +8,26 @@
 		"check": "biome check --write"
 	},
 	"dependencies": {
-		"fast-xml-parser": "^4.5.1",
-		"hono": "^4.6.20",
-		"satori": "^0.12.1",
+		"fast-xml-parser": "^5.1.0",
+		"hono": "^4.7.5",
+		"satori": "^0.12.2",
 		"svg2png-wasm": "^1.4.1",
 		"yoga-wasm-web": "^0.3.3"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
-		"@cloudflare/workers-types": "^4.20250109.0",
-		"@types/react": "^19.0.8",
-		"wrangler": "^3.101.0"
+		"@cloudflare/workers-types": "^4.20250403.0",
+		"@types/react": "^19.1.0",
+		"wrangler": "^4.7.0"
 	},
 	"engines": {
 		"node": ">=20.0.0"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"esbuild",
+			"sharp",
+			"workerd"
+		]
 	}
 }
