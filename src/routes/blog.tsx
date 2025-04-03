@@ -8,10 +8,6 @@ import { generateImage } from "@/libs/ogp";
 
 const router = new Hono<Env>();
 
-const parser = new XMLParser({
-  ignoreDeclaration: true,
-});
-
 interface RSSItem {
   title: string;
   link: string;
@@ -42,6 +38,10 @@ const getPosts = async (useCache = true) => {
 
   const response = await fetch("https://kq5.jp/rss.xml");
   const xml = await response.text();
+
+  const parser = new XMLParser({
+    ignoreDeclaration: true,
+  });
   const result = parser.parse(xml);
 
   const items: PostItem[] = result.rss.channel.item.map((item: RSSItem) => ({
@@ -59,6 +59,52 @@ const getPosts = async (useCache = true) => {
   );
 
   return items;
+};
+
+const getPostFromHtml = async (slug: string, useCache = true) => {
+  const cache = await caches.open("blog-cache");
+
+  if (useCache) {
+    const cachedResponse = await cache.match(`https://kq5.jp/posts/${slug}/`);
+    if (cachedResponse) {
+      return JSON.parse(await cachedResponse.text()) as PostItem;
+    }
+  }
+
+  const response = await fetch(`https://kq5.jp/posts/${slug}/`);
+  if (!response.ok) {
+    return undefined;
+  }
+
+  const html = await response.text();
+
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    ignoreDeclaration: true,
+    unpairedTags: ["hr", "br", "link", "meta"],
+    stopNodes: ["*.pre", "*.script"],
+    processEntities: true,
+    htmlEntities: true,
+  });
+
+  const parsed = parser.parse(html);
+  const post = {
+    title: parsed.html.body.main.div.div[0].h1,
+    link: `https://kq5.jp/posts/${slug}/`,
+    date: new Date(parsed.html.body.main.div.div[0].div.div[0].time)
+      .toISOString()
+      .split("T")[0],
+    slug: slug,
+    hidden: true,
+    tags: parsed.html.body.main.div.div[0].div.div[1].div.span,
+  } as PostItem;
+
+  await cache.put(
+    `https://kq5.jp/posts/${slug}/`,
+    new Response(JSON.stringify(post))
+  );
+
+  return post;
 };
 
 router.get("/image.png", async (c) => {
@@ -89,7 +135,13 @@ router.get("/image.png", async (c) => {
     posts = await getPosts(false);
     post = posts.find((p) => p.slug === slug && p.date === date);
     if (!post) {
-      return c.body("Post not found", { status: 404 });
+      post = await getPostFromHtml(slug);
+      if (!post) {
+        post = await getPostFromHtml(slug, false);
+        if (!post) {
+          return c.body("Post not found", { status: 404 });
+        }
+      }
     }
   }
 
