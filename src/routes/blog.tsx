@@ -26,6 +26,15 @@ interface PostItem {
   tags: string[];
 }
 
+function formatDate(isoString: string): string {
+  const date = new Date(isoString);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+    `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+  );
+}
+
 const getPosts = async (useCache = true) => {
   const cache = await caches.open("blog-cache");
 
@@ -47,7 +56,7 @@ const getPosts = async (useCache = true) => {
   const items: PostItem[] = result.rss.channel.item.map((item: RSSItem) => ({
     title: item.title,
     link: item.link,
-    date: new Date(item.pubDate).toISOString().split("T")[0],
+    date: formatDate(item.pubDate),
     slug: item.slug,
     hidden: item.hidden,
     tags: item.tags.split(","),
@@ -91,12 +100,12 @@ const getPostFromHtml = async (slug: string, useCache = true) => {
   const post = {
     title: parsed.html.body.main.div.div[0].h1,
     link: `https://kq5.jp/posts/${slug}/`,
-    date: new Date(parsed.html.body.main.div.div[0].div.div[0].time)
-      .toISOString()
-      .split("T")[0],
+    date: formatDate(parsed.html.body.main.div.div[0].div.div[0].time["#text"]),
     slug: slug,
     hidden: true,
-    tags: parsed.html.body.main.div.div[0].div.div[1].div.span,
+    tags: parsed.html.body.main.div.div[0].div.div[3].div.span.map(
+      (tag: { a: string }) => tag.a
+    ),
   } as PostItem;
 
   await cache.put(
@@ -213,7 +222,7 @@ router.get("/image.png", async (c) => {
             justifyContent: "space-between",
           }}
         >
-          <div>{post.date}</div>
+          <div>{post.date.split(" ")[0]}</div>
           <div>kq5.jp</div>
         </div>
       </div>
